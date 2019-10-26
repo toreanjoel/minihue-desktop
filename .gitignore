@@ -1,0 +1,3 @@
+# ignoring the node modules for now
+# this will be installed via npm install
+node_modules
