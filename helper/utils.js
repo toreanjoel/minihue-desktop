@@ -42,7 +42,7 @@ module.exports = {
     if(color.length > 0) {
       socket.emit(EVENTS.SET_COLOR, color);
       socket.broadcast.emit(EVENTS.SET_COLOR, color);
-      if(!!port) {
+      if(port) {
         port.write(color[0] + ',' + color[1] + ',' + color[2])
       }
     }
@@ -54,7 +54,7 @@ module.exports = {
         // promie callback to send the color
         socket.emit(EVENTS.GET_AVG_COLOR, color);
         socket.broadcast.emit(EVENTS.GET_AVG_COLOR, color);
-        if (!!port) {
+        if (port) {
           port.write(color[0] + ',' + color[1] + ',' + color[2])
         }
       }

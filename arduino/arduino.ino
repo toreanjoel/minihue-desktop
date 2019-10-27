@@ -1,8 +1,8 @@
 #include <FastLED.h>
 
 #define LED_PIN     5
-#define NUM_LEDS    60
-#define BRIGHTNESS 50
+#define NUM_LEDS    15
+#define BRIGHTNESS 100
 #define LED_TYPE    WS2812
 #define COLOR_ORDER GRB
 #define PIN13 13
@@ -15,7 +15,7 @@ int BLUE = 255;
 void setup() {
     Serial.begin(9600);
     // set pin mode so we can use the LED - buildin LED
-    pinMode(PIN13, OUTPUT);
+    pinMode(LED_PIN, OUTPUT);
     // setup the fast LED library
     delay( 3000 ); // power-up safety delay
     FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );

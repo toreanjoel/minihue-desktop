@@ -99,7 +99,9 @@
     //listen for end on color picker
     pickr.on('change', (color) => {
       const colorArr = color.toRGBA();
+      console.info('colorArr', colorArr.toString());
       const rbg = [colorArr[0], colorArr[1], colorArr[2]].map((item) => Math.floor(item));
+      console.info(rbg)
       const customValue = `rgb(${rbg[0]},${rbg[1]},${rbg[2]})`;
       setStorage('mode', JSON.stringify({ type: 'custom', color: rbg }));
       pickr.setColor(customValue)
