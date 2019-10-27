@@ -1,34 +1,116 @@
 body {
   background: black;
-  -webkit-transition: background-color 0.5s ease-in-out;
-  -ms-transition: background-color 0.5s ease-in-out;
-  transition: background-color 0.5s ease-in-out;
   margin: 0;
 }
 
 #main-wrapper {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100vh; /* Fallback for browsers that do not support Custom Properties */
+  height: calc(var(--vh, 1vh) * 100);
+  
+  -webkit-transition: background-color 0.5s ease-in-out;
+  -ms-transition: background-color 0.5s ease-in-out;
+  transition: background-color 0.5s ease-in-out;
+
 }
 
-.top-section {
-  flex: 3;
+.color-section {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  background: rgba(12, 12, 12, 0.43);
 }
 
-.bottom-section {
-  flex: 1;
-  justify-self: center;
-  display: flex;
+.middle-section {
+  flex: 6;
+}
+
+.footer-section {
+  color: rgb(255, 255, 255);
+  font-size: 4vw;
+  background: rgba(12, 12, 12, 0.43);
+  display: grid;
+  align-items: center;
+  padding: 20px;
+  font-family: monospace;
+  text-align: right;
 }
 
 .current-color {
   flex: 1;
-  align-self: flex-end;
-  background: rgb(12, 12, 12);
+  align-self: center;
   color: rgb(255, 255, 255);
-  font-size: 25px;
+  font-size: 5vw;
   font-family: monospace;
   padding: 20px;
+}
+
+.color-settings-wrapper {
+  display: grid;
+  grid-template-columns: 50px 50px;
+  align-items: center;
+  padding: 10px;
+  grid-gap: 10px;
+}
+
+.pickr {
+  display: flex;
+}
+
+.pickr > .pcr-button {
+  border: 1px solid rgb(255, 255, 255);
+  width: 100%;
+  height: 45px;
+  align-self: center;
+  justify-content: center;
+}
+
+/* disabled state*/
+.pickr > .pcr-button.disabled {
+  opacity: 0.3;
+}
+
+/* Toggle desktop switch*/
+input {
+  display: none;
+  opacity: 0;
+}
+
+label {
+  width: 100%;
+  height: 30px;
+  cursor: pointer;
+  display: inline-block;
+  position: relative;
   
+  transition: background-color 0.4s;
+  -moz-transition: background-color 0.4s;
+  -webkit-transition: background-color 0.4s;
+}
+label:after {
+  left: 0;
+  width: 20px;
+  height: 20px;
+  margin: 5px;
+  content: '';
+  position: absolute;
+  background: #d65d5d;
+  border-radius: 10px;
+}
+
+input:checked + label:after {
+  left: auto;
+  right: 0;
+  background: rgb(39, 173, 95);
+  border-radius: 10px;
+}
+
+@media only screen and (max-width: 768px) {
+  .mobile-view {
+    display: none;
+  }
+
+  #main-wrapper {
+    display: none;
+  }
 }

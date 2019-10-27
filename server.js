@@ -19,6 +19,8 @@ app.use('/', express.static(__dirname + SYSTEM.CLIENT_DIR));
  * setup the connection to the server and listen for event stream
  */
 io.on(EVENTS.CONNECTION, (socket) => {
+  console.info('socket',socket);
+  socket.emit(EVENTS.CONNECTION, "hello");
   // client wants the color
   socket.on(EVENTS.GET_AVG_COLOR, (color) => {
     (async () => {

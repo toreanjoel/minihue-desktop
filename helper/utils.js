@@ -2,7 +2,7 @@ const fs = require('fs');
 const ColorThief = require('colorthief');
 const SerialPort = require('serialport');
 const constants = require("./constants");
-const { EVENTS, SYSTEM } = constants;
+const { EVENTS } = constants;
 
 let port;
 // here we are going to make sure the ports array has an arduino - can be changed for other units later
