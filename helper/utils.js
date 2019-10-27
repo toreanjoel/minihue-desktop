@@ -4,6 +4,7 @@ const SerialPort = require('serialport');
 const constants = require("./constants");
 const { EVENTS, SYSTEM } = constants;
 
+let port;
 // here we are going to make sure the ports array has an arduino - can be changed for other units later
 (function() {
   SerialPort.list((err, ports) => {
@@ -41,7 +42,9 @@ module.exports = {
     if(color.length > 0) {
       socket.emit(EVENTS.SET_COLOR, color);
       socket.broadcast.emit(EVENTS.SET_COLOR, color);
-      port.write(color[0] + ',' + color[1] + ',' + color[2])
+      if(!!port) {
+        port.write(color[0] + ',' + color[1] + ',' + color[2])
+      }
     }
   },
   getColor: function({ currentWallp, socket }) {
@@ -51,7 +54,9 @@ module.exports = {
         // promie callback to send the color
         socket.emit(EVENTS.GET_AVG_COLOR, color);
         socket.broadcast.emit(EVENTS.GET_AVG_COLOR, color);
-        port.write(color[0] + ',' + color[1] + ',' + color[2])
+        if (!!port) {
+          port.write(color[0] + ',' + color[1] + ',' + color[2])
+        }
       }
     })
     .catch(err => { console.log(err) });
