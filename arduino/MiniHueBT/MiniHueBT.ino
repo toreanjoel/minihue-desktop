@@ -94,12 +94,10 @@ void checkOnOffAction() {
 
 void runCommand(String command_type, String command_action) {
   if(command_type == BRIGHTNESS) {
-    Serial.println("Changing BRIGHTNESS...");
     changeBrightness(command_action.toInt());
   }
 
   if(command_type == COLOR) {
-    Serial.println("Changing COLOR...");
     changeColor(command_action);
   }
 }
@@ -109,6 +107,7 @@ void runCommand(String command_type, String command_action) {
  */
 void changeBrightness(int brightVal) {
   if(!isnan(brightVal)) {
+    Serial.println("Changing BRIGHTNESS...");
     onState = brightVal;
     brightness = brightVal;
     //here we write to memory the values
@@ -125,6 +124,7 @@ void changeColor(String color) {
   String g = getValue(color,'.', 1);
   String b = getValue(color,'.', 2);
   if(r != "" && g != "" && b != "") { // check if they are not ignored or empty
+    Serial.println("Changing COLOR...");
     // convert the values to intergers as we use this to set the color state
     int RED = r.toInt();
     int GREEN= g.toInt();
