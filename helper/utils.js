@@ -4,20 +4,22 @@ const SerialPort = require('serialport');
 const constants = require("./constants");
 const { EVENTS } = constants;
 
-let port;
+let port = new SerialPort('COM4', { baudRate: 9600 });
 // here we are going to make sure the ports array has an arduino - can be changed for other units later
-(function() {
-  SerialPort.list((err, ports) => {
-    if(ports.length > 0 && !err) {
-      for(var i = 0; i < ports.length; i++) {
-        if (ports[i].manufacturer.indexOf('arduino') !== -1) {
-          console.info('currentPort', ports[i].comName);
-          port = new SerialPort(ports[i].comName, { baudRate: 9600 });
-        }
-      }
-    }
-  });
-})();
+// (function() {
+//   SerialPort.list((err, ports) => {
+//     if(ports.length > 0 && !err) {
+//       for(var i = 0; i < ports.length; i++) {
+//         if (ports[i].manufacturer.indexOf('arduino') !== -1) {
+//           console.info('currentPort', ports[i].comName);
+//           port = new SerialPort('COM4', { baudRate: 9600 });
+//         }
+//       }
+//     }
+//   });
+// })();
+
+console.info(port)
 
 module.exports = {
   copyFile: function({ fileSource, destination, socket }) {
@@ -43,7 +45,8 @@ module.exports = {
       socket.emit(EVENTS.SET_COLOR, color);
       socket.broadcast.emit(EVENTS.SET_COLOR, color);
       if(port) {
-        port.write(color[0] + ',' + color[1] + ',' + color[2])
+        console.info('c?' + color[0] + '.' + color[1] + '.' + color[2]);
+        port.write('c?' + color[0] + '.' + color[1] + '.' + color[2])
       }
     }
   },
@@ -55,7 +58,7 @@ module.exports = {
         socket.emit(EVENTS.GET_AVG_COLOR, color);
         socket.broadcast.emit(EVENTS.GET_AVG_COLOR, color);
         if (port) {
-          port.write(color[0] + ',' + color[1] + ',' + color[2])
+          port.write('c?' + color[0] + '.' + color[1] + '.' + color[2])
         }
       }
     })

@@ -61,7 +61,7 @@ void loop() {
 
   // set the data recieved to the action variable as a string
   action = Serial.readString();
-  Serial.println(action);
+
   // split the command type and action
   String action_type = getValue(action,'?', 0);
   String action_command = getValue(action,'?', 1);
