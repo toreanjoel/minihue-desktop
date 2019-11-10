@@ -6,6 +6,7 @@
 
 #define NUM_LEDS 13
 #define DATA_PIN 5 // the pin that the LED strip is connected its data line to
+#define FRAMES_PER_SECOND  120
 
 /****************/
 /* constants */
@@ -14,25 +15,33 @@
 #define BAUD_RATE 9600
 #define BRIGHTNESS "b"
 #define COLOR "c"
+#define MODE "m"
 #define ON "on"
 #define OFF "off"
+#define PING "ping"
+#define ANIMATE_STATE 1
+#define CUSTOM_STATE 0
 
 /* This is the index address where in memory the data of each of them will be stored */
 #define BRIGHTNESS_EEPROM_INDEX 0
 #define RED_EEPROM_INDEX 1
 #define GREEN_EEPROM_INDEX 2
 #define BLUE_EEPROM_INDEX 3
+#define MODE_INDEX_INDEX 4
 
 /****************/
 /* variables that are changable */
 /* default variables that will be changed throughout runtime*/
 /****************/
 String action;
-int brightness;
+
+int state = 0;
+int brightness = 255;
 int offState = 0;
 int onState = brightness;
 int red, green, blue;
 
+uint8_t gHue = 0; // rotating "base color" used by many of the patterns
 
 CRGB leds[NUM_LEDS];
 
@@ -40,6 +49,7 @@ CRGB leds[NUM_LEDS];
 /* setup on controller startup */
 /****************/
 void setup() {
+  delay(3000); // 3 second delay for recovery
   //init the memory so we know what to set the variables to after power down
   initBuiltInMem();
   
@@ -52,24 +62,24 @@ void setup() {
 /****************/
 /* Loop while running */
 /****************/
-void loop() {
+void loop() {  
   //this will display the lights
   renderLights();
 
-  // listen for serial input and see if there is data coming in
-  while(Serial.available() == 0){}
-
-  // set the data recieved to the action variable as a string
-  action = Serial.readString();
-
-  // split the command type and action
-  String action_type = getValue(action,'?', 0);
-  String action_command = getValue(action,'?', 1);
-
-  //check if user turned on or off all the time
-  checkOnOffAction();
-  //check the command type and action
-  runCommand(action_type, action_command);
+  if (Serial.available()) {
+    // set the data recieved to the action variable as a string
+    action = Serial.readString();
+  
+    // split the command type and action
+    String action_type = getValue(action,'?', 0);
+    String action_command = getValue(action,'?', 1);
+  
+    //check if user turned on or off all the time
+    checkOnOffAction();
+    
+    //check the command type and action
+    runCommand(action_type, action_command);
+  }
 }
 
 /**
@@ -99,6 +109,31 @@ void runCommand(String command_type, String command_action) {
 
   if(command_type == COLOR) {
     changeColor(command_action);
+  }
+
+  if(command_type == MODE) {
+    checkCustomAnimate(command_action);
+  }
+
+  // just general status for the current instance and the variables status
+  if (command_type == PING) {
+    Serial.println("\n");
+    Serial.println("---------");
+    Serial.println("Brightness");
+    Serial.println(brightness);
+    Serial.println("---------");
+    Serial.println("Red");
+    Serial.println(red);
+    Serial.println("---------");
+    Serial.println("Green");
+    Serial.println(green);
+    Serial.println("---------");
+    Serial.println("Blue");
+    Serial.println(blue);
+    Serial.println("---------");
+    Serial.println("State");
+    Serial.println(state);
+    Serial.println("\n");
   }
 }
 
@@ -141,15 +176,42 @@ void changeColor(String color) {
   }
 }
 
+
+/**
+ * changeState
+ * Here we set the state between manual and animation
+ */
+
+void checkCustomAnimate(String mode) {
+  String selectedMode = getValue(mode,'?', 0); // first value is attached to the delimiter for some reason
+  if(selectedMode != "") { // check if they are not ignored or empty
+    Serial.println("Changing MODE...");
+    int currentMode = selectedMode.toInt();
+    state = currentMode;
+    EEPROM.write(MODE_INDEX_INDEX, currentMode);
+  }
+}
+
 /**
  * display light
  */
 void renderLights() {
-  for(int dot = 0; dot < NUM_LEDS; dot++) {
-    leds[dot].setRGB(red, green, blue);
-    FastLED.setBrightness(brightness);
-    FastLED.show();
+  if (state == ANIMATE_STATE) {
+    //  rainbow, rainbowWithGlitter, confetti, sinelon, juggle, bpm
+    bpm();
+    // do some periodic updates
+    EVERY_N_MILLISECONDS( 20 ) { gHue++; } // slowly cycle the "base color" through the rainbow
   }
+  
+  if (state == CUSTOM_STATE) {
+    for(int dot = 0; dot < NUM_LEDS; dot++) {
+      leds[dot].setRGB(red, green, blue);
+    }
+  }
+
+  FastLED.delay(1000/FRAMES_PER_SECOND);
+  FastLED.setBrightness(brightness);
+  FastLED.show();
 }
 
 
@@ -162,6 +224,7 @@ void initBuiltInMem() {
   red = EEPROM.read(RED_EEPROM_INDEX);
   green = EEPROM.read(GREEN_EEPROM_INDEX);
   blue = EEPROM.read(BLUE_EEPROM_INDEX);
+  state = EEPROM.read(MODE_INDEX_INDEX);
 
 
   //consecutive reset will clear everything in memory if we need to reset everthing
@@ -169,6 +232,7 @@ void initBuiltInMem() {
   EEPROM.write(RED_EEPROM_INDEX, 255);
   EEPROM.write(GREEN_EEPROM_INDEX, 255);
   EEPROM.write(BLUE_EEPROM_INDEX, 255);
+  EEPROM.write(MODE_INDEX_INDEX, 0);
 }
 
 /****************/
@@ -193,4 +257,66 @@ void initBuiltInMem() {
   }
 
   return found>index ? data.substring(strIndex[0], strIndex[1]) : "";
+}
+
+
+/*************/
+/* ANIMATIONS */
+/*************/
+
+void rainbow() 
+{
+  // FastLED's built-in rainbow generator
+  fill_rainbow( leds, NUM_LEDS, gHue, 7);
+}
+
+void rainbowWithGlitter() 
+{
+  // built-in FastLED rainbow, plus some random sparkly glitter
+  rainbow();
+  addGlitter(80);
+}
+
+void addGlitter( fract8 chanceOfGlitter) 
+{
+  if( random8() < chanceOfGlitter) {
+    leds[ random16(NUM_LEDS) ] += CRGB::White;
+  }
+}
+
+void confetti() 
+{
+  // random colored speckles that blink in and fade smoothly
+  fadeToBlackBy( leds, NUM_LEDS, 10);
+  int pos = random16(NUM_LEDS);
+  leds[pos] += CHSV( gHue + random8(64), 200, 255);
+}
+
+void sinelon()
+{
+  // a colored dot sweeping back and forth, with fading trails
+  fadeToBlackBy( leds, NUM_LEDS, 20);
+  int pos = beatsin16( 25, 0, NUM_LEDS-1 );
+  leds[pos] += CHSV( gHue, 255, 192);
+}
+
+void bpm()
+{
+  // colored stripes pulsing at a defined Beats-Per-Minute (BPM)
+  uint8_t BeatsPerMinute = 62;
+  CRGBPalette16 palette = PartyColors_p;
+  uint8_t beat = beatsin8( BeatsPerMinute, 64, 255);
+  for( int i = 0; i < NUM_LEDS; i++) { //9948
+    leds[i] = ColorFromPalette(palette, gHue+(i*2), beat-gHue+(i*10));
+  }
+}
+
+void juggle() {
+  // eight colored dots, weaving in and out of sync with each other
+  fadeToBlackBy( leds, NUM_LEDS, 20);
+  byte dothue = 0;
+  for( int i = 0; i < 8; i++) {
+    leds[beatsin16( i+7, 0, NUM_LEDS-1 )] |= CHSV(dothue, 200, 255);
+    dothue += 32;
+  }
 }
